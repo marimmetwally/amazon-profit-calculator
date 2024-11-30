@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>حساب ربح أمازون</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f9;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .container {
+      background-color: white;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      width: 350px;
+    }
+
+    h2 {
+      text-align: center;
+      color: #333;
+    }
+
+    label {
+      display: block;
+      margin: 10px 0 5px;
+      font-size: 14px;
+      color: #555;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 15px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      font-size: 14px;
+      color: #333;
+    }
+
+    button {
+      width: 100%;
+      padding: 10px;
+      background-color: #4CAF50;
+      border: none;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+
+    button:hover {
+      background-color: #45a049;
+    }
+
+    .result {
+      margin-top: 20px;
+      padding: 15px;
+      background-color: #f8f8f8;
+      border-radius: 5px;
+      text-align: center;
+      font-size: 18px;
+      color: #333;
+      font-weight: bold;
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h2>احسب ربحك من أمازون</h2>
+
+    <label for="product_price">سعر المنتج:</label>
+    <input type="number" id="product_price" placeholder="أدخل سعر المنتج" step="0.01">
+
+    <label for="product_cost">تكلفة المنتج:</label>
+    <input type="number" id="product_cost" placeholder="أدخل تكلفة المنتج" step="0.01">
+
+    <label for="shipping_type">اختار نوع الشحن:</label>
+    <select id="shipping_type">
+      <option value="fba">FBA</option>
+      <option value="fbm">FBM</option>
+      <option value="variable">متغيرة</option>
+    </select>
+
+    <div id="fba_fbm_section">
+      <label for="shipping_value" id="shipping_label">تكلفة الشحن:</label>
+      <input type="number" id="shipping_value" placeholder="تكلفة الشحن" step="0.01" disabled>
+      
+      <label for="commission_value" id="commission_label">العمولة (%)</label>
+      <input type="number" id="commission_value" placeholder="العمولة" step="0.1" disabled>
+    </div>
+
+    <div id="variable_section" class="hidden">
+      <label for="variable_shipping_value">تكلفة الشحن المتغيرة:</label>
+      <input type="number" id="variable_shipping_value" placeholder="أدخل تكلفة الشحن" step="0.01">
+
+      <label for="variable_commission_value">العمولة المتغيرة (%):</label>
+      <input type="number" id="variable_commission_value" placeholder="أدخل العمولة" step="0.1">
+    </div>
+
+    <button onclick="calculateProfit()">احسب الربح</button>
+
+    <div class="result" id="profit_result">الربح المتوقع: 0.00 جنيه</div>
+  </div>
+
+  <script>
+    // تحديث الحقول بناءً على اختيار نوع الشحن
+    document.getElementById('shipping_type').addEventListener('change', function() {
+      var shippingType = this.value;
+      var fba_fbm_section = document.getElementById("fba_fbm_section");
+      var variable_section = document.getElementById("variable_section");
+      
+      if (shippingType === 'fba') {
+        // تعيين العمولة إلى 11% إذا تم اختيار FBA
+        document.getElementById('commission_value').value = 11;
+        document.getElementById('commission_value').disabled = true;
+        // تعيين تكلفة الشحن إلى 26 جنيه
+        document.getElementById('shipping_value').value = 26;
+        document.getElementById('shipping_value').disabled = true;
+
+        fba_fbm_section.style.display = "block";
+        variable_section.style.display = "none";
+      } else if (shippingType === 'fbm') {
+        // تعيين العمولة إلى 15% إذا تم اختيار FBM
+        document.getElementById('commission_value').value = 15;
+        document.getElementById('commission_value').disabled = true;
+        // تعيين تكلفة الشحن إلى 70 جنيه
+        document.getElementById('shipping_value').value = 70;
+        document.getElementById('shipping_value').disabled = true;
+
+        fba_fbm_section.style.display = "block";
+        variable_section.style.display = "none";
+      } else if (shippingType === 'variable') {
+        // تمكين المدخلات المتغيرة
+        document.getElementById('variable_shipping_value').disabled = false;
+        document.getElementById('variable_commission_value').disabled = false;
+        
+        fba_fbm_section.style.display = "none";
+        variable_section.style.display = "block";
+      }
+    });
+
+    function calculateProfit() {
+      // الحصول على القيم المدخلة
+      var productPrice = parseFloat(document.getElementById("product_price").value);
+      var productCost = parseFloat(document.getElementById("product_cost").value);
+      var shippingType = document.getElementById("shipping_type").value;
+      var commissionValue, shippingValue;
+
+      if (shippingType === 'variable') {
+        commissionValue = parseFloat(document.getElementById("variable_commission_value").value);
+        shippingValue = parseFloat(document.getElementById("variable_shipping_value").value);
+      } else {
+        commissionValue = parseFloat(document.getElementById("commission_value").value);
+        shippingValue = parseFloat(document.getElementById("shipping_value").value);
+      }
+
+      // التحقق من أن القيم المدخلة صحيحة
+      if (isNaN(productPrice) || isNaN(productCost) || isNaN(commissionValue) || isNaN(shippingValue)) {
+        alert("يرجى إدخال جميع البيانات بشكل صحيح.");
+        return;
+      }
+
+      // حساب رسوم أمازون
+      var amazonFeeAmount = productPrice * (commissionValue / 100);
+      // حساب التكلفة الإجمالية
+      var totalCost = productCost + amazonFeeAmount + shippingValue;
+      // حساب الربح
+      var profit = productPrice - totalCost;
+
+      // عرض الربح
+      document.getElementById("profit_result").textContent = "الربح المتوقع: " + profit.toFixed(2) + " جنيه";
+    }
+  </script>
+
+</body>
+</html>
